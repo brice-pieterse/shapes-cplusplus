@@ -1,24 +1,10 @@
+#ifndef SHAPES_HPP
+#define SHAPES_HPP
+
 #include <vector>
-#include <iostream>
 #include "Point.hpp"
 #include "Vectors.hpp"
-
-using std::vector;
-using std::string;
-using std::to_string;
-using std::cout;
-using std::endl;
-using std::sqrt;
-using std::acos;
-using std::sin;
-
-using Vectors::dot;
-using Vectors::proj_a_b;
-using Vectors::vecLength;
-using Vectors::vectorEquality;
-using Vectors::subVectors;
-
-#include <cmath>
+#include <string>
 
 
 namespace Shapes {
@@ -27,229 +13,102 @@ namespace Shapes {
 
     // base class for a general shape
     class Shape {
-        string name;
+    protected:
+        std::string name;
 
-        public:
-            Shape(string name = "Default"): name(name) {}
+    public:
+        Shape(std::string name = "Default");
 
-            double area(){
-                return 0;
-            };
-
-            string getName(){
-                return name;
-            };
-
-            double circumference(){
-                return 0;
-            };
-
+        virtual double area() const;
+        virtual double circumference() const;
+        std::string getName() const;
     };
 
     // circle shape class
-    class Circle: public Shape {
-        
+    class Circle : public Shape {
+    private:
         Point origin;
         double radius;
 
-        public:
-            // constructs a circle from an origin and a radius
-            Circle(double radius, const Point& o): Shape("circle"), origin(o), radius(radius) {
-                if(radius <= 0){
-                    throw std::invalid_argument("Circles have a positive radius.");
-                }
-            };
+    public:
+        // constructs a circle from an origin and a radius
+        Circle(double radius, const Point& o);
 
-            // circle area 
-            double area() const {
-                return PI * radius * radius;
-            };
+        // circle area 
+        double area() const override;
 
-            // circle circumference 
-            double circumference() const {
-                return 2 * PI * radius;
-            };
+        // circle circumference 
+        double circumference() const override;
 
-            // circle bounding box 
-            vector<Point> boundingBox() const {
-                cout << "here" << endl;
-                vector<Point> bounds = {
-                    Point{origin.x() + radius, origin.y() + radius},
-                    Point{origin.x() - radius, origin.y() + radius},
-                    Point{origin.x() + radius, origin.y() - radius},
-                    Point{origin.x() - radius, origin.y() - radius}
-                };
-                cout << "after" << endl;
-                return bounds;
-            };
+        // circle bounding box 
+        std::vector<Point> boundingBox() const;
 
-            // creates a string summarizing the bounding box 
-            string boundingBoxString(){
-                string str;
-                vector<Point> box = boundingBox();
-                cout << "box size" << endl;
-                for(size_t i = 0; i < box.size(); i++){
-                    str += "(x: " + to_string(box[i].x());
-                    str += ", y: " + to_string(box[i].y()) + ")";
-                }
-                return str;
-            }
+        // creates a string summarizing the bounding box 
+        std::string boundingBoxString();
 
-            // summarizes the circle statistics
-            void display(){
-                cout << "Shape with name: " + getName() + 
-                "; area: " + to_string(area()) +
-                "; circumference: " + to_string(circumference()) +
-                "; bounding box: " + boundingBoxString() << endl;
-            };
-    }; 
+        // summarizes the circle statistics
+        void display();
+    };
 
     // rectangle shape class   
-    class Rectangle: public Shape {
+    class Rectangle : public Shape {
+    private:
+        Point v1, v2, v3, v4;
 
-        Point v1;
-        Point v2;
-        Point v3;
-        Point v4;
+    public:
+        // constructs a rectangle from 4 vertices
+        // verts must describe a shape with 4 right angles
+        Rectangle(const Point& topLeft, const Point& topRight, const Point& bottomRight, const Point& bottomLeft);
 
-        public:
-            // constructs a rectangle from 4 verticles
-            // verts must describe a shape with 4 right angles
-            Rectangle(const Point&topLeft, const Point&topRight, const Point&bottomRight, const Point&bottomLeft): 
-            Shape("rectangle"), v1(topLeft), v2(topRight), v3(bottomRight), v4(bottomLeft) {
-                
-                // check that the shape is a rectange
-                if(
-                    dot(subVectors(topLeft, topRight), subVectors(bottomLeft, topLeft)) != 0 ||
-                    dot(subVectors(bottomRight, topRight), subVectors(bottomRight, bottomLeft)) != 0
-                ){
-                    throw std::invalid_argument("Rectangles have four right angles.");
-                }
-                
-            };
+        // rectangle area
+        double area() const override;
 
-            // rectangle area
-            double area() const {
-                return vecLength(subVectors(v1, v2)) * vecLength(subVectors(v1, v4));
-            };
+        // rectangle perimeter
+        double circumference() const override;
 
-            // rectangle perimeter
-            double circumference() const {
-                return 2 * vecLength(subVectors(v1, v2)) + 2 * vecLength(subVectors(v1, v4));
-            };
+        // returns the vertices of the rectangle
+        std::vector<Point> boundingBox() const;
 
-            // returns the vertices of the rectangle
-            vector<Point> boundingBox() const {
-                vector<Point> bounds = { v1, v2, v3, v4 };
-                return bounds;
-            };
+        // string summary of the rectangle bounding box
+        std::string boundingBoxString();
 
-            // string summary of the rectangle bounding box
-            string boundingBoxString(){
-                string str;
-                vector<Point> box = boundingBox();
-                for(size_t i = 0; i < box.size(); i++){
-                    str += "(x: " + to_string(box[i].x());
-                    str += ", y: " + to_string(box[i].y()) + ")";
-                }
-                return str;
-            }
-
-            // summarizes the rectangle statistics
-            void display(){
-                cout << "Shape with name: " + getName() + 
-                "; area: " + to_string(area()) +
-                "; circumference: " + to_string(circumference()) +
-                "; bounding box: " + boundingBoxString() << endl;
-            };
-
-    }; 
+        // summarizes the rectangle statistics
+        void display();
+    };
 
     // triangle shape class 
-    class Triangle: public Shape {
+    class Triangle : public Shape {
+    private:
+        Point v1, v2, v3;
+        Point v1_v2, v1_v3, v3_v2;
+        double v1_v3_length, v1_v2_length, v3_v2_length;
 
-        Point v1;
-        Point v2;
-        Point v3;
+    public:
+        // constructs a triangle from 3 vertices
+        // vertices must be at unique positions to form a triangle
+        Triangle(const Point& p1, const Point& p2, const Point& p3);
 
-        Point v1_v2;
-        Point v1_v3;
-        Point v3_v2;
+        // triangle area formula
+        double area() const override;
 
-        double v1_v3_length;
-        double v1_v2_length;
-        double v3_v2_length;
+        // triangle perimeter
+        double circumference() const override;
 
-        public:
-            // constructs a triangle from 3 vertices
-            // vertices must be at unique positions to form a triangle
-            Triangle(const Point&p1, const Point&p2, const Point&p3): v1(p1), v2(p2), v3(p3) {
+        // calculates a base length for the triangle
+        double getBase() const;
 
-                v1_v2 = Point{v2.x() - v1.x(), v2.y() - v1.y()};
-                v1_v3 = Point{v3.x() - v1.x(), v3.y() - v1.y()};
-                v3_v2 = Point{v3.x() - v2.x(), v3.y() - v2.y()};
+        // calculates a height for the triangle
+        double getHeight() const;
 
-                if (vectorEquality(v1, v2) || vectorEquality(v1, v3) || vectorEquality(v3, v2)) {
-                    throw std::invalid_argument("Vertices of the triangle must be at unique positions.");
-                }
+        // calculates a bounding box for the triangle
+        std::vector<Point> boundingBox() const;
 
-                v1_v3_length = vecLength(v1_v3);
-                v1_v2_length = vecLength(v1_v2);
-                v3_v2_length = vecLength(v3_v2);
-            }
+        std::string boundingBoxString();
 
-            // triangle area formula
-            double area() const {
-                return (getBase() * getHeight())/2;
-            };
+        // summarizes the triangle statistics
+        void display();
+    };
 
-            // triangle perimeter
-            double circumference() const {
-                return v1_v3_length + v1_v2_length + v3_v2_length;
-            };
+} // namespace Shapes
 
-            // calculates a base length for the triangle
-            double getBase() const {
-                return v1_v2_length;
-            }
-
-            // calculates a height for the triangle
-            double getHeight() const {
-                return vecLength(
-                    subVectors( proj_a_b(v1_v3, v1_v2), v1_v3 )
-                );
-            }
-
-            // calculates a bounding box for the triangle
-            vector<Point> boundingBox() const{
-                Point fromBaseToTip = subVectors(proj_a_b(v1_v3, v1_v2), v1_v3);
-                vector<Point> bounds = {
-                    Point{v1.x(), v1.y()},
-                    Point{v2.x(), v2.y()},
-                    Point{v1.x() + fromBaseToTip.x(), v1.y() + fromBaseToTip.y()},
-                    Point{v2.x() + fromBaseToTip.x(), v2.y() + fromBaseToTip.y()}
-                };
-                return bounds;
-            };
-
-            
-            string boundingBoxString(){
-                string str;
-                vector<Point> box = boundingBox();
-                for(size_t i = 0; i < box.size(); i++){
-                    str += "(x: " + to_string(box[i].x());
-                    str += ", y: " + to_string(box[i].y()) + ")";
-                }
-                return str;
-            }
-
-
-            // summarizes the triangle statistics
-            void display(){
-                cout << "Shape with name: " + getName() + 
-                "; area: " + to_string(area()) +
-                "; circumference: " + to_string(circumference()) +
-                "; bounding box: " + boundingBoxString() << endl;
-            };
-    };   
-}
+#endif

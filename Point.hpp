@@ -1,3 +1,7 @@
+
+#ifndef POINTS_HPP
+#define POINTS_HPP
+
 #include <vector>
 
 using std::vector;
@@ -11,8 +15,6 @@ class Point {
 
         Point(){ p = { 0, 0 }; }
         Point(double x, double y): p({x, y}) {}
-        // compiler supplies a copy constructor
-        // Point(const Point& xy): p(xy.p) {}
 
         const vector<double> show() const {
             return p;
@@ -40,3 +42,5 @@ class Point {
             return p.at(1);
         }
 };
+
+#endif

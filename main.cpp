@@ -6,6 +6,7 @@ using Shapes::Circle;
 using Shapes::Rectangle;
 using Shapes::Triangle;
 using std::cout;
+using std::endl;
 
 /* 
 
@@ -18,7 +19,7 @@ Goal: Create an inheritance hierarchy of Shapes using a Point class to describe 
 
 Test Plan:
 
-- Try to construct some degenerate shapes
+- Try to construct some degenerate shapes (ie. Circle with negative radius)
 - Validate statistics of valid shapes (area, perimeter, etc.)
 
 */
